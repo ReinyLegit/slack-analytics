@@ -1,4 +1,4 @@
-# channelsとusersのCSVを作成する
+# Create CSV for channels and users
 import pandas as pd
 import json
 
