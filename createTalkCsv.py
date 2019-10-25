@@ -1,5 +1,6 @@
-# channelごと日付ごとのファイルを取得してCSV作成
-# ※createMasterCsvを実行してから行うこと
+# Get CSV file by date for each channel
+# * Things to do after executing createMasterCsv
+
 import os
 import pandas as pd
 import json
@@ -10,57 +11,57 @@ import uuid
 
 class CreateTalkCsv:
     def outputCsv(self, filename, header, contents):
-        write_encoding = 'utf_8_sig' #excelとかで見るからbom付ける
+        write_encoding = 'utf_8_sig' #Add a bom to watch excel
         with open(filename + '.csv', 'w', encoding=write_encoding) as f:
             writer = csv.writer(f, lineterminator='\n')
             writer.writerow(header)
             writer.writerows(contents)
 
     def exec(self):
-        # 列定義
+        # Column definition
         talk_cols = ['channel_id', 'talk_id', 'ts', 'thread_ts', 'talk_user', 'text', 'date']
         talk_norequire_cols = ['subtype', 'thread_ts', 'reactions']
         reaction_cols = ['channel_id', 'talk_id', 'talk_user', 'reaction_user', 'emoji', 'date']
         mention_cols = ['channel_id', 'talk_id', 'talk_user', 'mention_user', 'date']
 
-        # 初期化
+        # Initialization
         talks_all = []
         talk_reactions_all = []
         talk_mentions_all = []
 
         df_channels = pd.read_csv('output/channels.csv', encoding='utf_8_sig')
-        # アーカイブ済は除外
+        # Exclude archived
         df_channels = df_channels[df_channels['is_archived'] == False ]
 
         for index, channel in df_channels.iterrows():
             channel_id = channel['id']
             channel_name = channel['name']
 
-            # チャンネルフォルダ内の日別jsonファイル一覧を取得
+            # Get a list of daily json files in the channel folder
             datefiles = glob.glob('data/' + channel_name + '/*.json')
 
-            # 初期化
+            # Initialization
             talks = []
             talk_reactions = []
             talk_mentions = []
 
-            # 日付ファイル別ループ
+            # Loop by date file
             for datefile in datefiles:
-                # 日付ファイル取得 + 欠損値補完
+                # Date file acquisition + Missing value completion
                 df = pd.read_json(datefile, encoding='utf-8').fillna("")
 
-                # 日付
+                # date
                 date = os.path.splitext(os.path.basename(datefile))[0]
 
-                # 要素がない場合は追加
+                # Add if no element
                 for col in talk_norequire_cols: 
                     if not col in df.columns:
                         df[col] = ""
 
-                # メッセージのみ
+                # Message only
                 df = df[df['subtype'] == ""]
 
-                # 1行ずつ
+                # Line by line
                 for index, row in df.iterrows():
                     talk_id = str(uuid.uuid4()) 
                     talk_user = row['user']
