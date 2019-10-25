@@ -1,5 +1,5 @@
-# channelごと日付ごとのファイルを取得してCSV作成
-# ※createMasterCsvを実行してから行うこと
+# Get CSV file by date for each channel
+# * Things to do after executing createMasterCsv
 import os
 import pandas as pd
 import json
@@ -10,20 +10,20 @@ import uuid
 
 class CommonTools:
     def outputCsv(self, filename, header, contents):
-        write_encoding = 'utf_8_sig' #excelとかで見るからbom付ける
+        write_encoding = 'utf_8_sig' #Add a bom to watch excel
         with open(filename + '.csv', 'w', encoding=write_encoding) as f:
             writer = csv.writer(f, lineterminator='\n')
             writer.writerow(header)
             writer.writerows(contents)
 
     def convertTalkText(self, text, df_users):
-        #df_usersのindexはuser_idにすること
-        #emojiは変換しません
+        #df_users index should be user_id
+        #emoji does not convert
         repDict = {
             '<!here>': '`@here`',
             '<!channel>': '`@channel`'
         }
-        #ユーザーメンションの置換
+        #Replace user mentions
         mentions = re.findall('<@[0-9a-zA-Z_./?-]{9}>', text)
         for mention in mentions:
             mention_user = mention[2:-1]
